@@ -1,0 +1,3 @@
+pyfaidx
+numpy
+tensorflow==2.2.0
