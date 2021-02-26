@@ -128,7 +128,7 @@ class Interval(Position):
         if (length < shift):
             exit("Shift must have same or smaller size then length")
 
-        if ((shift * (self.length//shift+1) + (length % shift)) % self.length == 0):
+        if (self.length - (shift * (self.length//shift) + (length % shift)) == 0):
             missing = 0
         elif (length % shift != 0):
             exit("length have to be dividable without reset by shift")

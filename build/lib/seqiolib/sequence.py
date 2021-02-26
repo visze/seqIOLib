@@ -124,16 +124,23 @@ class Interval(Position):
         return(self.contains(Position(interval.contig,interval.start())) and self.contains(Position(interval.contig,interval.end())))
 
     def tiling(self, length=300, shift=1):
-        if (length % shift != 0):
+
+        if (length < shift):
+            exit("Shift must have same or smaller size then length")
+
+        if ((shift * (self.length//shift+1) + (length % shift)) % self.length == 0):
+            missing = 0
+        elif (length % shift != 0):
             exit("length have to be dividable without reset by shift")
-        missing = 0
-        if (self.length > length):
-            missing = self.length % shift
+        elif (self.length > length):
+            missing=self.length % shift
         elif (self.length < length):
-            missing = length - self.length
+            missing=length - self.length
+        else:
+            exit("Interval length with shifts did not fit n times into interval")
+
         new_start = self.position - math.ceil(missing/2)
         new_end = self.position + self.length-1 + math.floor(missing/2)
-
         tiling_start = new_start
         tiling_end = tiling_start + length - 1
 
