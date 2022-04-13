@@ -10,7 +10,7 @@ with open('README.rst') as readme_file:
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
-requirements = ["pyfaidx", "numpy<1.19.0", "tensorflow==2.5.3"]
+requirements = ["pyfaidx", "numpy>=1.21", "tensorflow==2.5.3"]
 
 setup_requirements = ['pytest-runner', ]
 
