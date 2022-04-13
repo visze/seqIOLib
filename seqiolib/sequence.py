@@ -67,16 +67,22 @@ class Variant(Position):
 
 # 1 based
 class Interval(Position):
-    def __init__(self,contig,start,end,id=None):
+    def __init__(self,contig=None,start=None,end=None,id=None):
         self.id = id
-        if (end < start):
-            self.orientation = Orientation.REVERSE
-            Position.__init__(self,contig,end)
-            self.length = start-end+1
+        self.orientation = Orientation.FORWARD
+        if contig is not None:
+            if (end < start):
+                self.orientation = Orientation.REVERSE
+                Position.__init__(self,contig,end)
+                self.length = start-end+1
+            else:
+                self.orientation = Orientation.FORWARD
+                Position.__init__(self,contig,start)
+                self.length = end-start+1
         else:
-            self.orientation = Orientation.FORWARD
-            Position.__init__(self,contig,start)
-            self.length = end-start+1
+            Position.__init__(self,None,None)
+    
+    
 
     @classmethod
     def fromString(cls, string, coordinates=Coordinates.ONEBASED_INCLUSIVE_INCLUSIVE):
@@ -156,13 +162,17 @@ class Interval(Position):
         return(intervals)
 
 class Sequence(Interval):
-    def __init__(self,contig,start,end,id,sequence):
-        Interval.__init__(self,contig,start,end,id)
-
-        if (self.orientation == Orientation.REVERSE):
-            self.sequence=reverseComplement(sequence)
-        else:
+    def __init__(self,contig=None,start=None,end=None,id=None,sequence=None):
+        if contig is None:
+            Interval.__init__(self,id=id)
             self.sequence=sequence
+        else:
+            Interval.__init__(self,contig,start,end,id)
+
+            if (self.orientation == Orientation.REVERSE):
+                self.sequence=reverseComplement(sequence)
+            else:
+                self.sequence=sequence
 
     def __str__(self):
         return(self.getFastaString()[0:80])
@@ -218,16 +228,19 @@ class Sequence(Interval):
         return(satMut,variants)
 
     def getFastaString(self):
-        start = self.start()
-        end = self.end()
-        if (self.isReverse()):
-            end = self.start()
-            start = self.end()
+        if self.start() == None:
+            return ">%s\n%s" % (self.id, self.getSequence())
+        else:
+            start = self.start()
+            end = self.end()
+            if (self.isReverse()):
+                end = self.start()
+                start = self.end()
 
-        id=""
-        if (self.id is not None and len(self.id)>0):
-            id = "_%s" % self.id
-        return ">%s:%d-%d(%s)%s\n%s" % (self.contig,start,end,self.orientation.value,id,self.getSequence())
+            id=""
+            if (self.id is not None and len(self.id)>0):
+                id = "_%s" % self.id
+            return ">%s:%d-%d(%s)%s\n%s" % (self.contig,start,end,self.orientation.value,id,self.getSequence())
 
 
 

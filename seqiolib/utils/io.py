@@ -15,7 +15,7 @@ class IntervalIO():
     @staticmethod
     def getIntervals(file, format=FileType.BED):
         intervals = []
-        with gzip.open(file, 'rt') as f:
+        with gzip.open(file, mode='rt') as f:
             for line in f:
                 if line.startswith("#"):
                     continue
@@ -35,7 +35,7 @@ class VariantIO():
     @staticmethod
     def loadVariants(file, removeRefVariants=False, fileType=FileType.VCF):
         variants = []
-        with gzip.open(file, 'rt') as f:
+        with gzip.open(file, mode='rt') as f:
             for line in f:
                 split_line = line.strip().split("\t")
                 if line.startswith("#"):
@@ -54,7 +54,7 @@ class SequenceIO():
     def readFasta(fastaFile, skipN=True, coordinates=Coordinates.ONEBASED_INCLUSIVE_INCLUSIVE):
         sequences = []
         if (fastaFile[-3:] == ".gz"):
-            f = gzip.open(fastaFile, 'rt')
+            f = gzip.open(fastaFile, mode='rt')
         else:
             f=  open(fastaFile, 'rt')
 
@@ -62,10 +62,14 @@ class SequenceIO():
         interval = None
         sequence = ""
         p = re.compile('^>(chr)?((1[0-9]|2[0-2]|X|Y|M|[0-9]):[0-9]+-[0-9]+){1}(\(([+-.])\))?(\s|_)?(.*)')
+        p_alt = re.compile('^>(.*)')
         for line in f:
             if line.startswith(">"):
                 if id is not None:
-                    sequences.append(Sequence(interval.contig, interval.start(), interval.end(), id, sequence))
+                    if interval is not None:
+                        sequences.append(Sequence(interval.contig, interval.start(), interval.end(), id, sequence))
+                    else:
+                        sequences.append(Sequence(id=id, sequence=sequence))
                 if ":" not in line: # WORKAROUND
                     if (line.count("_") > 4): # Skip unplaced contig sequences. This I have to do before! (e.g. chr16_KI270853v1_alt_525051_525350_neg_489)
                         id = None
@@ -73,12 +77,18 @@ class SequenceIO():
                     line = line.replace("_",":",1).replace("_",'-',1)
                 match = p.search(line)
 
-                interval = Interval.fromString("chr"+match.group(2), coordinates=coordinates)
+                if match != None:
+                    interval = Interval.fromString("chr"+match.group(2), coordinates=coordinates)
 
-                if (match.group(5) != None):
-                    interval.orientation = Orientation(match.group(5))
+                    if (match.group(5) != None):
+                        interval.orientation = Orientation(match.group(5))
 
-                id = match.group(7)
+                    id = match.group(7)
+                else:
+                    interval = None
+                    match_alt = p_alt.search(line)
+                    id = match_alt.group(1)
+                
 
                 sequence = ""
             else:
@@ -88,14 +98,17 @@ class SequenceIO():
                         id = None
 
         if id is not None:
-            sequences.append(Sequence(interval.contig, interval.start(), interval.end(), id, sequence))
+            if interval is not None:
+                sequences.append(Sequence(interval.contig, interval.start(), interval.end(), id, sequence))
+            else:
+                sequences.append(Sequence(id=id, sequence=sequence))
         f.close()
         return(sequences)
 
     @staticmethod
     def writeFasta(fastaFile,sequences):
         if (fastaFile[-3:] == ".gz"):
-            f = gzip.open(fastaFile, 'wt')
+            f = gzip.open(fastaFile, mode='w')
         else:
             f=  open(fastaFile, 'wt')
         for sequence in sequences:
