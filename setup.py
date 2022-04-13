@@ -10,7 +10,7 @@ with open('README.rst') as readme_file:
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
-requirements = ["pyfaidx", "numpy<1.19.0", "tensorflow==2.2.1"]
+requirements = ["pyfaidx", "numpy", "tensorflow"]
 
 setup_requirements = ['pytest-runner', ]
 
@@ -18,7 +18,7 @@ test_requirements = ['pytest>=3', ]
 
 setup(
     author="Max Schubach",
-    author_email='max.schubach@bihealth.de',
+    author_email='max.schubach@bih-charite.de',
     python_requires='>=3.5',
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
@@ -42,6 +42,6 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/visze/seqiolib',
-    version='0.2.1',
+    version='0.2.3',
     zip_safe=False,
 )
